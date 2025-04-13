@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker | Hackathon Project</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <div class="logo">ExpenseTracker</div>
+            <div class="auth-buttons">
+                <button class="btn-login" id="loginBtn">Login</button>
+                <button class="btn-signup" id="signupBtn">Sign Up</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Dashboard Content (shown when logged in) -->
+        <div id="dashboardContent" style="display: none;">
+            <div class="summary-cards">
+                <div class="summary-card income">
+                    <div class="summary-card-title">Income</div>
+                    <div class="summary-card-amount" id="incomeAmount">$0.00</div>
+                    <div class="summary-card-change change-up" id="incomeChange">+0% from last month</div>
+                </div>
+                <div class="summary-card expenses">
+                    <div class="summary-card-title">Expenses</div>
+                    <div class="summary-card-amount" id="expenseAmount">$0.00</div>
+                    <div class="summary-card-change change-down" id="expenseChange">+0% from last month</div>
+                </div>
+                <div class="summary-card balance">
+                    <div class="summary-card-title">Balance</div>
+                    <div class="summary-card-amount" id="balanceAmount">$0.00</div>
+                    <div class="summary-card-change" id="balanceChange">+0% from last month</div>
+                </div>
+            </div>
+
+            <div class="dashboard">
+                <div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Recent Transactions</div>
+                            <button class="btn-add" id="addExpenseBtn">Add New</button>
+                        </div>
+                        <div class="card-body">
+                            <ul class="expense-list" id="expenseList">
+                                <!-- Expenses will be added here dynamically -->
+                                <div class="loading">
+                                    <div class="spinner"></div>
+                                </div>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Spending Analysis</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="tabs">
+                                <div class="tab active" data-tab="categories">By Category</div>
+                                <div class="tab" data-tab="monthly">Monthly</div>
+                            </div>
+                            <div class="tab-content active" id="categoriesTab">
+                                <div class="chart-container">
+                                    <canvas id="categoryChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="tab-content" id="monthlyTab">
+                                <div class="chart-container">
+                                    <canvas id="monthlyChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auth Content (shown when logged out) -->
+        <div id="authContent">
+            <div class="auth-container" id="loginContainer">
+                <h2 class="auth-title">Login to Your Account</h2>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginEmail">Email</label>
+                        <input type="email" class="form-control" id="loginEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" class="form-control" id="loginPassword" required>
+                    </div>
+                    <button type="submit" class="btn-submit">Login</button>
+                </form>
+                <div class="auth-footer">
+                    Don't have an account? <a href="#" class="auth-link" id="showSignup">Sign Up</a>
+                </div>
+            </div>
+
+            <div class="auth-container" id="signupContainer" style="display: none;">
+                <h2 class="auth-title">Create New Account</h2>
+                <form id="signupForm">
+                    <div class="form-group">
+                        <label for="signupName">Name</label>
+                        <input type="text" class="form-control" id="signupName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupEmail">Email</label>
+                        <input type="email" class="form-control" id="signupEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupPassword">Password</label>
+                        <input type="password" class="form-control" id="signupPassword" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupCurrency">Currency</label>
+                        <select class="form-control" id="signupCurrency" required>
+                            <option value="USD">US Dollar ($)</option>
+                            <option value="EUR">Euro (€)</option>
+                            <option value="GBP">British Pound (£)</option>
+                            <option value="JPY">Japanese Yen (¥)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-submit">Sign Up</button>
+                </form>
+                <div class="auth-footer">
+                    Already have an account? <a href="#" class="auth-link" id="showLogin">Login</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add/Edit Expense Modal -->
+    <div class="modal" id="expenseModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">Add New Expense</div>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="expenseForm">
+                    <div class="form-radio-group">
+                        <div class="form-radio">
+                            <input type="radio" id="expenseTypeExpense" name="type" value="expense" checked>
+                            <label for="expenseTypeExpense">Expense</label>
+                        </div>
+                        <div class="form-radio">
+                            <input type="radio" id="expenseTypeIncome" name="type" value="income">
+                            <label for="expenseTypeIncome">Income</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="expenseAmount">Amount</label>
+                        <input type="number" class="form-control" id="expenseAmountInput" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="expenseDescription">Description</label>
+                        <input type="text" class="form-control" id="expenseDescription" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="expenseCategory">Category</label>
+                        <select class="form-control" id="expenseCategory" required>
+                            <option value="Food">Food</option>
+                            <option value="Transportation">Transportation</option>
+                            <option value="Housing">Housing</option>
+                            <option value="Entertainment">Entertainment</option>
+                            <option value="Healthcare">Healthcare</option>
+                            <option value="Education">Education</option>
+                            <option value="Shopping">Shopping</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="expenseDate">Date</label>
+                        <input type="date" class="form-control" id="expenseDate" required>
+                    </div>
+                    <input type="hidden" id="expenseId">
+                    <button type="submit" class="btn-submit" id="saveExpenseBtn">Save</button>
+                </form>
+
+
+
+
+
+
+
+
+
+                
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
